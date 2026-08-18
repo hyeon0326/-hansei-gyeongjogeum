@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>경조금 신청·관리 시스템</title>
+<style>
+  :root{
+    --navy:#16305A;
+    --navy-deep:#0E1F3D;
+    --gold:#B8933F;
+    --bg:#F4F5F7;
+    --card:#FFFFFF;
+    --border:#E1E4EA;
+    --text:#1A1D23;
+    --muted:#6B7280;
+    --amber:#B45309;
+    --amber-bg:#FEF3E2;
+    --blue:#1D4ED8;
+    --blue-bg:#EAF0FE;
+    --green:#15803D;
+    --green-bg:#E9F7EE;
+    --red:#B91C1C;
+    --red-bg:#FDECEC;
+    --gray-bg:#F1F2F4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Pretendard",system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.55;
+  }
+  .app{max-width:920px;margin:0 auto;padding:28px 20px 60px;}
+  .masthead{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);
+    border-radius:14px;
+    color:#fff;
+    padding:26px 28px;
+    margin-bottom:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::after{
+    content:"";
+    position:absolute;right:-40px;top:-40px;width:180px;height:180px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(184,147,63,0.35),transparent 70%);
+  }
+  .masthead .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--gold);font-weight:700;text-transform:uppercase;}
+  .masthead h1{margin:6px 0 4px;font-size:22px;font-weight:700;}
+  .masthead p{margin:0;font-size:13px;color:#C9D2E3;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--card);padding:5px;border-radius:11px;border:1px solid var(--border);}
+  .tab-btn{
+    flex:1;padding:11px 8px;border:none;background:transparent;border-radius:8px;
+    font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;
+  }
+  .tab-btn.active{background:var(--navy);color:#fff;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:16px;}
+  .card h2{font-size:15px;margin:0 0 16px;color:var(--navy);display:flex;align-items:center;gap:8px;}
+  .card h2 .num{
+    width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;
+    font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+  .field label .req{color:var(--red);margin-left:2px;}
+  input[type=text],input[type=date],select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;font-family:inherit;background:#fff;color:var(--text);
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--navy);outline-offset:1px;border-color:var(--navy);}
+  textarea{resize:vertical;min-height:64px;}
+
+  .info-box{
+    background:var(--blue-bg);border:1px solid #C7D7FB;border-radius:10px;
+    padding:16px 18px;margin:4px 0 18px;display:none;
+  }
+  .info-box.show{display:block;}
+  .info-row{display:flex;gap:10px;padding:6px 0;border-bottom:1px dashed #C7D7FB;font-size:13.5px;}
+  .info-row:last-child{border-bottom:none;}
+  .info-row .k{width:96px;flex-shrink:0;color:var(--blue);font-weight:700;}
+  .info-row .v{color:var(--text);}
+  .info-note{font-size:12px;color:var(--muted);margin-top:8px;}
+
+  .file-drop{
+    border:1.5px dashed var(--border);border-radius:10px;padding:18px;text-align:center;
+    cursor:pointer;background:#FAFBFC;transition:.15s;
+  }
+  .file-drop:hover{border-color:var(--navy);background:var(--blue-bg);}
+  .file-drop input{display:none;}
+  .file-drop .ft{font-size:13px;color:var(--muted);}
+  .file-list{margin-top:10px;}
+  .file-chip{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--gray-bg);border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:6px;
+  }
+  .file-chip button{border:none;background:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:700;}
+
+  .email-notice{
+    background:var(--amber-bg);border:1px solid #F0DDB4;border-radius:9px;
+    padding:11px 14px;font-size:12.5px;color:var(--amber);margin-top:12px;line-height:1.6;
+  }
+  .email-notice a{color:var(--amber);font-weight:700;}
+  .skipped-list{margin-top:10px;}
+  .skipped-chip{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--red-bg);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--red);margin-bottom:6px;
+  }
+  .skipped-chip button{border:none;background:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:700;text-decoration:underline;flex-shrink:0;}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:12px 20px;border-radius:9px;border:none;font-size:14.5px;font-weight:700;
+    cursor:pointer;transition:.15s;
+  }
+  .btn-primary{background:var(--navy);color:#fff;width:100%;}
+  .btn-primary:hover{background:var(--navy-deep);}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn-sm{padding:7px 12px;font-size:12.5px;}
+
+  .helper{font-size:12px;color:var(--muted);margin-top:10px;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--navy-deep);color:#fff;padding:13px 22px;border-radius:10px;font-size:13.5px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.25s;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .lookup-row{display:flex;gap:10px;}
+  .lookup-row .field{flex:1;margin-bottom:0;}
+
+  .badge{
+    display:inline-block;padding:4px 11px;border-radius:100px;font-size:12px;font-weight:700;
+  }
+  .b-접수{background:var(--gray-bg);color:#4B5563;}
+  .b-검토중{background:var(--amber-bg);color:var(--amber);}
+  .b-승인{background:var(--blue-bg);color:var(--blue);}
+  .b-지급완료{background:var(--green-bg);color:var(--green);}
+  .b-반려{background:var(--red-bg);color:var(--red);}
+
+  .sub-card{border:1px solid var(--border);border-radius:11px;padding:16px 18px;margin-bottom:12px;}
+  .sub-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .sub-top .who{font-weight:700;font-size:14.5px;}
+  .sub-top .cat{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .sub-meta{display:flex;gap:16px;font-size:12.5px;color:var(--muted);flex-wrap:wrap;margin-bottom:10px;}
+  .sub-meta b{color:var(--text);}
+
+  .steps{display:flex;align-items:center;margin:12px 0 4px;}
+  .step{flex:1;text-align:center;position:relative;}
+  .step .dot{
+    width:22px;height:22px;border-radius:50%;background:var(--gray-bg);color:var(--muted);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+    margin:0 auto 5px;border:2px solid var(--border);
+  }
+  .step.done .dot{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .step .lb{font-size:11px;color:var(--muted);}
+  .step.done .lb{color:var(--navy);font-weight:700;}
+  .step::before{
+    content:"";position:absolute;top:11px;left:-50%;width:100%;height:2px;background:var(--border);z-index:-1;
+  }
+  .step:first-child::before{display:none;}
+  .step.done::before{background:var(--navy);}
+  .rejected-note{background:var(--red-bg);color:var(--red);border-radius:8px;padding:9px 12px;font-size:12.5px;margin-top:8px;}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px;}
+  .empty .big{font-size:30px;margin-bottom:8px;}
+
+  .admin-note{
+    background:var(--amber-bg);color:var(--amber);border-radius:9px;padding:11px 14px;
+    font-size:12px;margin-bottom:16px;
+  }
+  .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .chip-filter{
+    padding:6px 13px;border-radius:100px;border:1px solid var(--border);background:#fff;
+    font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted);
+  }
+  .chip-filter.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  .admin-item{border:1px solid var(--border);border-radius:11px;margin-bottom:10px;overflow:hidden;}
+  .admin-head{
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fff;
+  }
+  .admin-head:hover{background:#FAFBFC;}
+  .admin-head .left{display:flex;flex-direction:column;gap:3px;}
+  .admin-head .id{font-size:11px;color:var(--muted);font-family:monospace;}
+  .admin-head .nm{font-size:14px;font-weight:700;}
+  .admin-body{padding:0 16px 16px;display:none;border-top:1px solid var(--border);}
+  .admin-body.open{display:block;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px;margin:14px 0;}
+  .detail-grid .dk{color:var(--muted);}
+  .detail-grid .dv{font-weight:600;}
+  .attach-link{
+    display:inline-block;font-size:12.5px;color:var(--blue);text-decoration:none;margin:3px 8px 3px 0;
+    background:var(--blue-bg);padding:5px 10px;border-radius:6px;
+  }
+  .status-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .status-actions select{width:auto;flex:1;min-width:140px;}
+
+  .rules-toggle{
+    display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+  }
+  .rules-toggle .chev{transition:.2s;color:var(--muted);font-size:12px;}
+  .rules-toggle.open .chev{transform:rotate(90deg);}
+  .rules-body{display:none;margin-top:16px;}
+  .rules-body.open{display:block;}
+  .settings-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:18px;}
+  .settings-row .field{flex:1;margin-bottom:0;}
+  .rules-table{width:100%;border-collapse:collapse;}
+  .rules-table th{
+    text-align:left;font-size:11.5px;color:var(--muted);font-weight:700;
+    padding:0 8px 6px;border-bottom:1px solid var(--border);
+  }
+  .rules-table td{padding:5px 6px;vertical-align:top;}
+  .rules-table td input{padding:8px 9px;font-size:12.5px;}
+  .rules-table td.col-cat input{min-width:150px;}
+  .rules-table td.col-del{width:34px;text-align:center;}
+  .rules-table td.col-del button{
+    border:none;background:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1;padding:6px;
+  }
+  .rules-actions{display:flex;gap:10px;margin-top:14px;}
+  .rules-actions .btn-primary{width:auto;flex:0 0 auto;padding:10px 20px;}
+  .rules-saved-note{font-size:11.5px;color:var(--muted);margin-top:8px;display:none;}
+
+  /* 통계 하위 접이식 섹션 */
+  .stat-section{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;}
+  .stat-section:last-of-type{margin-bottom:0;}
+  .stat-section-toggle{
+    display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+    padding:13px 16px;background:#FAFBFC;
+  }
+  .stat-section-toggle:hover{background:var(--gray-bg);}
+  .stat-section-toggle h3{margin:0;font-size:13.5px;color:var(--navy);font-weight:700;}
+  .stat-section-toggle .chev{transition:.2s;color:var(--muted);font-size:11px;}
+  .stat-section-toggle.open .chev{transform:rotate(90deg);}
+  .stat-section-body{display:none;padding:16px;border-top:1px solid var(--border);}
+  .stat-section-body.open{display:block;}
+  .budget-table td input[type=number]{-moz-appearance:textfield;}
+
+  /* 제출 완료 다음 행동 안내 */
+  .result-card{border:1.5px solid var(--green);background:var(--green-bg);}
+  .result-card h2{color:var(--green);}
+  .result-id{font-family:monospace;font-size:13px;background:#fff;padding:2px 8px;border-radius:5px;}
+  .next-actions{list-style:none;margin:14px 0 16px;padding:0;}
+  .next-actions li{
+    display:flex;gap:9px;align-items:flex-start;font-size:13px;padding:9px 0;border-top:1px dashed #C9E6D1;
+  }
+  .next-actions li:first-child{border-top:none;}
+  .next-actions .ico{flex-shrink:0;}
+
+  /* 관리자 일괄 처리 바 */
+  .bulk-bar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--gray-bg);border-radius:9px;padding:10px 14px;margin-bottom:14px;
+  }
+  .bulk-bar .count{font-size:12.5px;font-weight:700;color:var(--navy);}
+  .bulk-bar select{width:auto;padding:8px 10px;font-size:12.5px;}
+  .bulk-bar .spacer{flex:1;}
+  .row-check{margin-right:10px;flex-shrink:0;width:16px;height:16px;cursor:pointer;}
+  .admin-head{display:flex;align-items:center;}
+  .admin-head .left{flex:1;}
+  .select-all-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:10px;}
+
+  /* 통계 대시보드 */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+  .stat-box{background:var(--gray-bg);border-radius:10px;padding:16px 18px;}
+  .stat-box .label{font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .stat-box .value{font-size:22px;font-weight:800;color:var(--navy);}
+  .stat-box .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .progress-track{background:#E4E7EC;border-radius:100px;height:10px;margin-top:12px;overflow:hidden;}
+  .progress-fill{background:var(--navy);height:100%;border-radius:100px;transition:width .3s;}
+  .progress-fill.over{background:var(--red);}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12.5px;}
+  .bar-row .bar-label{width:88px;flex-shrink:0;color:var(--text);font-weight:600;}
+  .bar-row .bar-track{flex:1;background:var(--gray-bg);border-radius:6px;height:18px;overflow:hidden;}
+  .bar-row .bar-fill{background:var(--blue);height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;}
+  .bar-row .bar-count{width:34px;text-align:right;flex-shrink:0;font-weight:700;color:var(--muted);}
+  .stage-row{
+    display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;
+  }
+  .stage-row:last-child{border-bottom:none;}
+  .stage-row .stage-name{color:var(--muted);}
+  .stage-row .stage-days{font-weight:700;}
+  .stage-row.bottleneck .stage-days{color:var(--red);}
+  .stage-row.bottleneck .stage-name::after{content:" ⚠ 병목 구간";color:var(--red);font-size:11px;font-weight:700;}
+  .period-select{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .period-select select{width:auto;padding:8px 10px;font-size:12.5px;}
+  .stats-empty{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
+
+  /* 관리자 접근 잠금 모달 */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(14,31,61,0.55);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:#fff;border-radius:14px;padding:26px 24px;max-width:340px;width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+  }
+  .modal-box h3{margin:0 0 6px;font-size:16px;color:var(--navy);}
+  .modal-box p{margin:0 0 16px;font-size:12.5px;color:var(--muted);}
+  .modal-box input{margin-bottom:14px;}
+  .modal-actions{display:flex;gap:8px;}
+  .modal-actions .btn{flex:1;}
+  .tab-btn .lock{font-size:11px;opacity:.7;margin-left:3px;}
+
+  .date-filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;}
+  .date-filter-row .field{margin-bottom:0;}
+  .date-filter-row input[type=date]{width:auto;}
+
+  /* 임시저장 배너 */
+  .draft-banner{
+    border:1.5px solid var(--gold);background:#FBF6EA;
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  }
+  .draft-banner-text b{font-size:13.5px;color:#8A6A1F;}
+  .draft-banner-text .sub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .draft-banner-actions{display:flex;gap:8px;flex-shrink:0;}
+
+  /* 결재 이력 타임라인 */
+  .history-timeline{margin-top:14px;}
+  .history-item{
+    display:flex;gap:10px;padding:9px 0;border-top:1px dashed var(--border);font-size:12.5px;
+  }
+  .history-item:first-child{border-top:none;}
+  .history-item .dot2{
+    width:8px;height:8px;border-radius:50%;background:var(--navy);flex-shrink:0;margin-top:5px;
+  }
+  .history-item .h-status{font-weight:700;}
+  .history-item .h-at{color:var(--muted);margin-left:6px;font-size:11.5px;}
+  .history-item .h-memo{color:var(--muted);margin-top:2px;}
+
+  .notify-link{
+    display:inline-block;font-size:12.5px;color:var(--green);text-decoration:none;
+    background:var(--green-bg);padding:6px 11px;border-radius:6px;margin-top:10px;font-weight:600;
+  }
+
+  /* 월별 추이 */
+  .trend-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px;}
+  .trend-row .trend-label{width:64px;flex-shrink:0;color:var(--muted);}
+  .trend-row .trend-track{flex:1;background:var(--gray-bg);border-radius:6px;height:16px;overflow:hidden;}
+  .trend-row .trend-fill{background:var(--gold);height:100%;border-radius:6px;}
+  .trend-row .trend-count{width:32px;text-align:right;flex-shrink:0;font-weight:700;color:var(--muted);}
+
+  .modal-box.wide{max-width:420px;}
+  .modal-box .dup-list{
+    background:var(--gray-bg);border-radius:8px;padding:10px 12px;margin-bottom:14px;
+    font-size:12px;max-height:140px;overflow-y:auto;
+  }
+  .modal-box .dup-list div{padding:4px 0;border-bottom:1px dashed var(--border);}
+  .modal-box .dup-list div:last-child{border-bottom:none;}
+
+  .consent-box{
+    background:var(--gray-bg);border-radius:9px;padding:14px 16px;font-size:12.5px;
+    color:var(--text);white-space:pre-wrap;line-height:1.7;margin-bottom:14px;max-height:220px;overflow-y:auto;
+  }
+  .consent-check{
+    display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;cursor:pointer;
+  }
+  .consent-check input{width:17px;height:17px;cursor:pointer;flex-shrink:0;}
+
+  @media(max-width:640px){
+    .grid2{grid-template-columns:1fr;}
+    .lookup-row{flex-direction:column;}
+    .detail-grid{grid-template-columns:1fr;}
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <div class="eyebrow">한세대학교 인사총무팀</div>
+    <h1>경조금 신청·관리 시스템</h1>
+    <p>경조사항을 선택하면 지급액·휴가일수·증빙서류가 자동으로 안내됩니다. 신청부터 증빙 제출, 처리 현황 확인까지 한 곳에서 할 수 있습니다.</p>
+  </div>
+
+  <div id="fallback-banner" style="display:none;background:#FDECEC;border:1px solid #F3B4B4;color:#B91C1C;border-radius:10px;padding:12px 16px;font-size:12.5px;margin-bottom:18px;">
+    ⚠ 지금은 실제 데이터베이스(Supabase)에 연결되어 있지 않아 임시로 실행되고 있습니다. 새로고침하면 입력한 내용이 사라지고 다른 사람과 공유되지 않습니다. 배포 가이드 문서를 참고해 Supabase 연동을 완료해 주세요.
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="apply">신청하기</button>
+    <button class="tab-btn" data-tab="mine">내 신청 현황</button>
+    <button class="tab-btn" data-tab="admin">관리자 <span class="lock">🔒</span></button>
+  </div>
+
+  <!-- ===================== TAB 1: 신청하기 ===================== -->
+  <div class="tab-panel active" id="tab-apply">
+
+    <div class="card draft-banner" id="draft-banner" style="display:none;">
+      <div class="draft-banner-text">
+        <b>📝 이어서 작성 중이던 신청서가 있습니다.</b>
+        <div class="sub" id="draft-banner-sub"></div>
+      </div>
+      <div class="draft-banner-actions">
+        <button class="btn btn-ghost btn-sm" id="draft-discard-btn">새로 작성</button>
+        <button class="btn btn-primary btn-sm" id="draft-restore-btn">이어서 작성</button>
+      </div>
+    </div>
+
+    <div class="card result-card" id="submit-result" style="display:none;">
+      <h2>✅ 신청이 접수되었습니다</h2>
+      <div>접수번호 <span class="result-id" id="result-id"></span></div>
+      <ul class="next-actions" id="result-actions"></ul>
+      <button class="btn btn-ghost btn-sm" id="result-close-btn">확인, 새 신청 작성하기</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">1</span>신청인 정보</h2>
+      <div class="grid2">
+        <div class="field"><label>소속<span class="req">*</span></label><input type="text" id="ap-dept" placeholder="예: 인사총무팀"></div>
+        <div class="field"><label>성명<span class="req">*</span></label><input type="text" id="ap-name" placeholder="신청인 성명"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>교직원번호(사번)<span class="req">*</span></label><input type="text" id="ap-empid" placeholder="사번을 입력하세요"></div>
+        <div class="field"><label>이메일 (선택, 처리 상태 안내 수신용)</label><input type="text" id="ap-email" placeholder="예: name@hansei.ac.kr"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">2</span>경조사항 선택</h2>
+      <div class="field">
+        <label>경조내용<span class="req">*</span></label>
+        <select id="ap-category">
+          <option value="">경조사항을 선택하세요</option>
+        </select>
+      </div>
+
+      <div class="info-box" id="ap-info">
+        <div class="info-row"><div class="k">지급액</div><div class="v" id="info-amount">-</div></div>
+        <div class="info-row"><div class="k">경조휴가</div><div class="v" id="info-leave">-</div></div>
+        <div class="info-row"><div class="k">필요 증빙서류</div><div class="v" id="info-docs">-</div></div>
+        <div class="info-note">규정에 따라 자동 계산된 안내이며, 실제 지급액은 인사총무팀 검토 후 확정됩니다.</div>
+      </div>
+
+      <div class="grid2">
+        <div class="field"><label>대상자 성명<span class="req">*</span></label><input type="text" id="ap-target" placeholder="예: 배우자, 부친 등 당사자 성명"></div>
+        <div class="field"><label>신청인과의 관계<span class="req">*</span></label><input type="text" id="ap-relation" placeholder="예: 본인, 배우자, 부친 등"></div>
+      </div>
+      <div class="field"><label>사유 발생일자<span class="req">*</span></label><input type="date" id="ap-date"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">3</span>증빙서류 첨부</h2>
+      <div class="file-drop" id="drop-zone">
+        <input type="file" id="ap-files" multiple>
+        <div class="ft">📎 클릭하여 파일 선택 (파일당 1.5MB 이하 권장)</div>
+      </div>
+      <div class="file-list" id="file-list"></div>
+      <div class="skipped-list" id="skipped-list"></div>
+      <div class="helper">위 안내된 필요 증빙서류를 첨부해 주세요. 원본 제출이 필요한 서류는 첨부와 별도로 인사총무팀에 실물 제출이 필요할 수 있습니다.</div>
+      <div class="email-notice" id="email-notice"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">4</span>비고 (선택)</h2>
+      <textarea id="ap-note" placeholder="인사총무팀에 전달할 추가 사항이 있으면 입력하세요"></textarea>
+    </div>
+
+    <div class="card consent-card">
+      <h2><span class="num">5</span>개인정보 수집·이용 동의</h2>
+      <div class="consent-box" id="consent-notice"></div>
+      <label class="consent-check">
+        <input type="checkbox" id="ap-consent">
+        <span>위 개인정보 수집 및 이용에 동의합니다. <span class="req">*</span></span>
+      </label>
+    </div>
+
+    <button class="btn btn-primary" id="submit-btn">신청서 제출</button>
+  </div>
+
+  <!-- ===================== TAB 2: 내 신청 현황 ===================== -->
+  <div class="tab-panel" id="tab-mine">
+    <div class="card">
+      <h2>내 신청 현황 조회</h2>
+      <div class="lookup-row">
+        <div class="field"><label>사번</label><input type="text" id="mine-empid" placeholder="사번 입력"></div>
+        <div class="field"><label>성명</label><input type="text" id="mine-name" placeholder="성명 입력"></div>
+      </div>
+      <button class="btn btn-primary" id="mine-search-btn" style="margin-top:12px;">조회</button>
+    </div>
+    <div id="mine-results"></div>
+  </div>
+
+  <!-- ===================== TAB 3: 관리자 ===================== -->
+  <div class="tab-panel" id="tab-admin">
+    <div class="admin-note">⚠ 시연용 화면으로 별도 로그인 없이 모두 접근할 수 있습니다. 실제 운영 시 인사총무팀만 접근하도록 권한 설정이 필요합니다.</div>
+
+    <div class="card">
+      <div class="rules-toggle" id="stats-toggle">
+        <h2 style="margin:0;">통계 대시보드</h2>
+        <span class="chev">▶</span>
+      </div>
+      <div class="rules-body" id="stats-body">
+        <div class="stat-section">
+          <div class="stat-section-toggle open" data-target="stat-sec-budget">
+            <h3>예산 대비 집행률</h3>
+            <span class="chev">▶</span>
+          </div>
+          <div class="stat-section-body open" id="stat-sec-budget">
+            <div class="period-select">
+              <label style="font-size:12.5px;font-weight:600;color:var(--muted);">기준 연도</label>
+              <select id="stats-year-select"></select>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-box">
+                <div class="label">지급완료 총액</div>
+                <div class="value" id="stat-paid">0원</div>
+                <div class="sub" id="stat-budget-sub">연간 예산 미설정</div>
+                <div class="progress-track"><div class="progress-fill" id="stat-progress" style="width:0%;"></div></div>
+              </div>
+              <div class="stat-box">
+                <div class="label">진행중 금액 (접수·검토중·승인)</div>
+                <div class="value" id="stat-pending">0원</div>
+                <div class="sub">지급 예정 규모 참고용</div>
+              </div>
+            </div>
+
+            <h3 style="margin:20px 0 10px;font-size:13.5px;color:var(--navy);">예산 배정 내역</h3>
+            <div class="helper" style="margin-top:0;">최초 배정, 추가 배정, 조정(감액) 등을 연도별로 기록하면 해당 연도의 합계가 자동으로 예산에 반영됩니다. 금액을 음수로 입력하면 감액으로 처리됩니다.</div>
+            <table class="rules-table budget-table">
+              <thead>
+                <tr><th style="width:18%">연도</th><th style="width:30%">금액(원)</th><th>메모</th><th></th></tr>
+              </thead>
+              <tbody id="budget-tbody"></tbody>
+            </table>
+            <div class="rules-actions">
+              <button class="btn btn-ghost btn-sm" id="budget-add-btn">+ 배정 내역 추가</button>
+              <button class="btn btn-primary" id="budget-save-btn">예산 내역 저장</button>
+            </div>
+            <div class="rules-saved-note" id="budget-saved-note">저장되었습니다.</div>
+          </div>
+        </div>
+
+        <div class="stat-section">
+          <div class="stat-section-toggle" data-target="stat-sec-freq">
+            <h3>경조사 유형별 발생 빈도</h3>
+            <span class="chev">▶</span>
+          </div>
+          <div class="stat-section-body" id="stat-sec-freq">
+            <div class="period-select">
+              <label style="font-size:12.5px;font-weight:600;color:var(--muted);">조회 기간</label>
+              <select id="stats-period">
+                <option value="3">최근 3개월</option>
+                <option value="6">최근 6개월</option>
+                <option value="12">최근 12개월</option>
+                <option value="0">전체 기간</option>
+              </select>
+            </div>
+            <div class="date-filter-row">
+              <div class="field"><label>직접 기간 지정 (시작)</label><input type="date" id="stats-date-from"></div>
+              <div class="field"><label>직접 기간 지정 (종료)</label><input type="date" id="stats-date-to"></div>
+              <button class="btn btn-ghost btn-sm" id="stats-date-reset-btn">직접 지정 해제</button>
+            </div>
+            <div class="helper" style="margin:-8px 0 16px;">시작/종료일을 입력하면 위의 "조회 기간" 대신 해당 기간을 기준으로 계산합니다. 이 조회 기간 설정은 아래 "월별 추이", "처리 소요일" 항목에도 함께 적용됩니다.</div>
+            <div id="stat-freq-list"></div>
+          </div>
+        </div>
+
+        <div class="stat-section">
+          <div class="stat-section-toggle" data-target="stat-sec-trend">
+            <h3>월별 접수 건수 추이</h3>
+            <span class="chev">▶</span>
+          </div>
+          <div class="stat-section-body" id="stat-sec-trend">
+            <div id="stat-trend-list"></div>
+          </div>
+        </div>
+
+        <div class="stat-section">
+          <div class="stat-section-toggle" data-target="stat-sec-stage">
+            <h3>처리 소요일 평균 (병목 구간 파악)</h3>
+            <span class="chev">▶</span>
+          </div>
+          <div class="stat-section-body" id="stat-sec-stage">
+            <div id="stat-stage-list"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" id="stats-export-btn" style="margin-top:16px;">⬇ 통계 내보내기 (CSV)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rules-toggle" id="rules-toggle">
+        <h2 style="margin:0;">경조내용 및 지급기준 관리</h2>
+        <span class="chev">▶</span>
+      </div>
+      <div class="rules-body" id="rules-body">
+        <div class="settings-row">
+          <div class="field"><label>인사총무팀 안내 이메일 (대용량 서류 병행 제출용)</label><input type="text" id="settings-email" placeholder="예: hr@hansei.ac.kr"></div>
+        </div>
+        <div class="settings-row">
+          <div class="field"><label>관리자 화면 접속 비밀번호</label><input type="text" id="settings-passcode" placeholder="예: 1234"></div>
+          <div class="helper" style="margin:0;flex:1;">⚠ 브라우저에서 확인하는 방식이라 완전한 보안은 아닙니다. 민감한 개인정보 보호가 필요하면 별도 로그인 연동이 필요합니다.</div>
+        </div>
+        <div class="helper" style="margin-top:0;">💡 연간 예산은 위쪽 "통계 대시보드 → 예산 대비 집행률" 항목에서 연도별 배정 내역으로 관리합니다.</div>
+        <div class="field">
+          <label>개인정보 수집·이용 동의 안내문 (신청 화면에 표시됨)</label>
+          <textarea id="settings-privacy-notice" style="min-height:120px;"></textarea>
+          <div class="helper" style="margin-top:6px;">⚠ 아래 기본 문구는 참고용 템플릿입니다. 보유기간·수집항목 등은 학교의 개인정보처리방침 및 개인정보보호책임자 검토를 거쳐 확정해 주세요.</div>
+        </div>
+        <table class="rules-table">
+          <thead>
+            <tr><th style="width:26%">경조내용</th><th style="width:14%">지급액</th><th style="width:12%">경조휴가</th><th>필요 증빙서류</th><th></th></tr>
+          </thead>
+          <tbody id="rules-tbody"></tbody>
+        </table>
+        <div class="rules-actions">
+          <button class="btn btn-ghost btn-sm" id="rules-add-btn">+ 새 항목 추가</button>
+          <button class="btn btn-primary" id="rules-save-btn">변경사항 저장</button>
+        </div>
+        <div class="rules-saved-note" id="rules-saved-note">저장되었습니다. 이후 신청 화면에는 변경된 기준이 바로 반영되며, 이미 제출된 신청서의 값은 유지됩니다.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>전체 신청 내역</h2>
+      <div class="date-filter-row">
+        <div class="field"><label>신청일(시작)</label><input type="date" id="filter-date-from"></div>
+        <div class="field"><label>신청일(종료)</label><input type="date" id="filter-date-to"></div>
+        <button class="btn btn-ghost btn-sm" id="filter-date-reset-btn">기간 초기화</button>
+      </div>
+      <div class="filter-row" id="admin-filters"></div>
+      <div class="select-all-row">
+        <input type="checkbox" id="select-all-check" class="row-check" style="margin:0;">
+        <label for="select-all-check">현재 목록 전체 선택</label>
+      </div>
+      <div class="bulk-bar" id="bulk-bar" style="display:none;">
+        <span class="count" id="bulk-count">0건 선택됨</span>
+        <select id="bulk-status-sel"></select>
+        <button class="btn btn-ghost btn-sm" id="bulk-apply-btn">일괄 변경</button>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" id="export-csv-btn">⬇ 엑셀로 내보내기 (CSV)</button>
+      </div>
+      <div id="admin-list"></div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="passcode-modal">
+  <div class="modal-box">
+    <h3>🔒 관리자 접속 확인</h3>
+    <p>통계·관리자 화면은 비밀번호로 보호되어 있습니다. 인사총무팀 담당자만 이용해 주세요.</p>
+    <input type="password" id="passcode-input" placeholder="비밀번호 입력">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="passcode-cancel-btn">취소</button>
+      <button class="btn btn-primary" id="passcode-confirm-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dup-modal">
+  <div class="modal-box wide">
+    <h3>⚠ 유사한 신청 내역이 있습니다</h3>
+    <p>같은 사번·대상자·경조내용으로 이미 접수된 건이 있습니다. 중복 신청이 아니라면 계속 진행해 주세요.</p>
+    <div class="dup-list" id="dup-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="dup-cancel-btn">취소</button>
+      <button class="btn btn-primary" id="dup-confirm-btn">그래도 제출</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =============== 데이터 정의: 규정 기준 (기존 엑셀 양식 수식 기준, 관리자가 수정 가능) =============== */
+const DEFAULT_RULES = [
+  {id:"r01", cat:"[결혼] 본인", amount:"500,000원", leave:"7일", docs:"청첩장"},
+  {id:"r02", cat:"[결혼] 본인과 배우자의 형제자매 및 자녀", amount:"300,000원", leave:"1일", docs:"청첩장"},
+  {id:"r03", cat:"[출산] 본인 자녀", amount:"500,000원", leave:"5일", docs:"출생증명서 또는 가족관계증명서"},
+  {id:"r04", cat:"[돌] 자녀 (첫째)", amount:"300,000원", leave:"1일", docs:"출생증명서 또는 가족관계증명서"},
+  {id:"r05", cat:"[돌] 자녀 (둘째부터)", amount:"100,000원", leave:"1일", docs:"출생증명서 또는 가족관계증명서"},
+  {id:"r06", cat:"[사망] 본인", amount:"2,000,000원", leave:"해당없음", docs:"해당없음"},
+  {id:"r07", cat:"[사망] 배우자와 자녀", amount:"1,000,000원", leave:"5일", docs:"부고장(빈소·발인일 기재 必), 가족관계증명서"},
+  {id:"r08", cat:"[사망] 본인과 배우자의 부모", amount:"1,000,000원", leave:"5일", docs:"부고장(빈소·발인일 기재 必), 가족관계증명서"},
+  {id:"r09", cat:"[사망] 본인과 배우자의 조/외조부모, 형제자매", amount:"300,000원", leave:"3일", docs:"부고장(빈소·발인일 기재 必), 가족관계증명서"},
+  {id:"r10", cat:"[사망] 형제자매의 배우자", amount:"100,000원", leave:"2일", docs:"부고장(빈소·발인일 기재 必), 가족관계증명서"},
+  {id:"r11", cat:"[사망] 본인과 배우자의 백숙부모", amount:"100,000원", leave:"2일", docs:"부고장(빈소·발인일 기재 必), 가족관계증명서"},
+  {id:"r12", cat:"[회갑] 본인과 배우자의 부모 및 조부모", amount:"300,000원", leave:"2일", docs:"가족관계증명서"},
+  {id:"r13", cat:"[칠순] 본인과 배우자의 부모 및 조부모", amount:"300,000원", leave:"2일", docs:"가족관계증명서"},
+  {id:"r14", cat:"[탈상] 배우자", amount:"해당없음", leave:"3일", docs:"해당없음"},
+  {id:"r15", cat:"[탈상] 본인과 배우자의 부모", amount:"해당없음", leave:"2일", docs:"해당없음"},
+  {id:"r16", cat:"[탈상] 본인과 배우자의 조,외조부모", amount:"해당없음", leave:"1일", docs:"해당없음"},
+  {id:"r17", cat:"[탈상] 본인과 배우자의 백숙부모, 형제자매", amount:"해당없음", leave:"1일", docs:"해당없음"},
+];
+const RULES_KEY = "hansei-gyeongjogeum-rules";
+const SETTINGS_KEY = "hansei-gyeongjogeum-settings";
+const DEFAULT_PRIVACY_NOTICE = `인사총무팀은 경조금 및 경조휴가 지급 심사를 위해 아래와 같이 개인정보를 수집·이용합니다.
+
+- 수집 항목: 소속, 성명, 교직원번호, 이메일(선택), 대상자 성명 및 관계, 사유 발생일자, 증빙서류(가족관계증명서·청첩장·부고장 등), 비고
+- 수집 목적: 경조금 지급 및 경조휴가 부여를 위한 심사·처리
+- 보유 및 이용 기간: 지급 완료 후 관련 법령 및 학교 규정에서 정한 기간 동안 보관 후 파기 (※ 정확한 보유기간은 인사총무팀 확인 필요)
+- 동의 거부 권리 및 불이익: 위 개인정보 수집·이용에 동의하지 않을 권리가 있으나, 동의하지 않을 경우 경조금 신청서 접수가 제한됩니다.`;
+const DEFAULT_SETTINGS = {contactEmail:"", annualBudget:"", adminPasscode:"", privacyNotice: DEFAULT_PRIVACY_NOTICE};
+const BUDGET_KEY = "hansei-gyeongjogeum-budget-entries";
+const DEFAULT_ADMIN_PASSCODE = "1234";
+const STORAGE_KEY = "hansei-gyeongjogeum-submissions";
+const DRAFT_KEY = "hansei-gyeongjogeum-draft";
+const DRAFT_FIELD_IDS = ["ap-dept","ap-name","ap-empid","ap-email","ap-category","ap-target","ap-relation","ap-date","ap-note"];
+const STATUS_ORDER = ["접수","검토중","승인","지급완료"];
+const MAX_FILE_BYTES = 1.5 * 1024 * 1024;
+
+/* ---------- 저장소 래퍼 ----------
+   우선순위: 1) Claude 환경의 window.storage (미리보기용)
+             2) Supabase (아래 SUPABASE_URL / SUPABASE_ANON_KEY를 채우면 실제 배포 시 사용됨)
+             3) 개인 데이터(shared=false)는 브라우저 localStorage, 공유 데이터는 메모리(새로고침 시 사라짐)
+   =================================================================================
+   ▼▼▼ Supabase 연동: 아래 두 줄에 발급받은 값을 붙여넣으세요 (가이드 문서 참고) ▼▼▼ */
+const SUPABASE_URL = "여기에_Supabase_Project_URL_붙여넣기";
+const SUPABASE_ANON_KEY = "여기에_Supabase_anon_public_키_붙여넣기";
+/* ▲▲▲ 여기까지만 수정하면 됩니다. 아래 코드는 건드리지 않아도 됩니다. ▲▲▲ */
+
+let supabaseClient = null;
+function supabaseReady(){
+  if(supabaseClient) return true;
+  const urlOk = SUPABASE_URL && SUPABASE_URL.startsWith("http");
+  const keyOk = SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 20 && !SUPABASE_ANON_KEY.includes("여기에");
+  if(urlOk && keyOk && typeof window !== "undefined" && window.supabase && typeof window.supabase.createClient === "function"){
+    try{
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return true;
+    }catch(e){ console.error("Supabase 초기화 실패:", e); return false; }
+  }
+  return false;
+}
+
+const memoryStore = {};
+let usingFallbackStorage = false;
+function hasRealStorage(){
+  return typeof window !== "undefined" && window.storage && typeof window.storage.get === "function";
+}
+function hasLocalStorage(){
+  try{
+    if(typeof window === "undefined" || !window.localStorage) return false;
+    const t = "__test__";
+    window.localStorage.setItem(t, "1");
+    window.localStorage.removeItem(t);
+    return true;
+  }catch(e){ return false; }
+}
+
+async function storageGet(key, shared){
+  // 1) Claude 미리보기 환경
+  if(hasRealStorage()){
+    try{ return await window.storage.get(key, shared); }
+    catch(e){ return null; }
+  }
+  // 2) Supabase (공유 데이터: 신청 내역, 규정, 설정, 예산 등)
+  if(shared && supabaseReady()){
+    try{
+      const { data, error } = await supabaseClient.from("app_kv").select("value").eq("id", key).maybeSingle();
+      if(error) throw error;
+      return data ? {key, value: data.value, shared} : null;
+    }catch(e){
+      console.error("Supabase 읽기 실패:", e);
+      usingFallbackStorage = true;
+      // 아래 메모리 대체 저장소로 계속 진행
+    }
+  }
+  // 3) 개인 데이터(예: 임시저장)는 브라우저 localStorage 사용
+  if(!shared && hasLocalStorage()){
+    try{
+      const v = window.localStorage.getItem("hs-"+key);
+      return v!==null ? {key, value:v, shared} : null;
+    }catch(e){ /* 아래 메모리 대체로 진행 */ }
+  }
+  usingFallbackStorage = true;
+  const k = (shared?"shared:":"local:")+key;
+  return (k in memoryStore) ? {key, value: memoryStore[k], shared} : null;
+}
+
+async function storageSet(key, value, shared){
+  if(hasRealStorage()){
+    try{ return await window.storage.set(key, value, shared); }
+    catch(e){ usingFallbackStorage = true; }
+  }
+  if(shared && supabaseReady()){
+    try{
+      const { error } = await supabaseClient.from("app_kv").upsert({id:key, value, updated_at:new Date().toISOString()});
+      if(error) throw error;
+      return {key, value, shared};
+    }catch(e){
+      console.error("Supabase 쓰기 실패:", e);
+      usingFallbackStorage = true;
+      // 아래 메모리 대체 저장소로 계속 진행 (데이터 유실 방지를 위해 저장은 계속 시도)
+    }
+  }
+  if(!shared && hasLocalStorage()){
+    try{
+      window.localStorage.setItem("hs-"+key, value);
+      return {key, value, shared};
+    }catch(e){ /* 아래 메모리 대체로 진행 */ }
+  }
+  const k = (shared?"shared:":"local:")+key;
+  memoryStore[k] = value;
+  return {key, value, shared};
+}
+
+let attachedFiles = []; // {name, size, type, dataUrl}
+let skippedFiles = [];  // {name} - 용량 초과로 첨부하지 못한 파일
+let allSubmissions = [];
+let currentRules = [];
+let currentSettings = DEFAULT_SETTINGS;
+let draftRules = []; // 관리자 화면에서 편집 중인 임시 사본
+let budgetEntries = [];  // 연도별 예산 배정/조정 내역 (저장된 값)
+let draftBudgetEntries = [];  // 관리자 화면에서 편집 중인 임시 사본
+let draftSaveTimer = null;
+let suppressDraftAutosave = false; // 초안을 코드로 채워 넣는 동안 자동저장이 다시 발동하지 않도록
+let lastFreqEntries = [];  // 통계 CSV 내보내기용 캐시
+let lastStageEntries = [];
+let lastTrendEntries = [];
+let pendingDuplicateSubmission = null; // 중복 확인 모달에서 "그래도 제출" 시 사용할 대기 데이터
+
+/* ---------- 초기화 ---------- */
+async function init(){
+  // 이벤트 연결은 저장소 로딩과 무관하게 항상 먼저 실행 (저장소 오류가 화면 조작 불능으로 이어지지 않도록)
+  attachAllListeners();
+  renderAdminFilters();
+
+  try{
+    currentRules = await fetchRules();
+  }catch(e){
+    console.error("규정 불러오기 실패, 기본값 사용:", e);
+    currentRules = DEFAULT_RULES;
+  }
+  try{
+    currentSettings = await fetchSettings();
+  }catch(e){
+    console.error("설정 불러오기 실패, 기본값 사용:", e);
+    currentSettings = {...DEFAULT_SETTINGS};
+  }
+  renderCategoryOptions();
+  updateEmailNotice();
+  updatePrivacyNotice();
+
+  try{
+    await loadSubmissions();
+  }catch(e){
+    console.error("신청 내역 불러오기 실패:", e);
+  }
+
+  if(usingFallbackStorage){
+    document.getElementById("fallback-banner").style.display = "block";
+  }
+
+  try{
+    await checkForDraft();
+  }catch(e){
+    console.error("임시저장 확인 실패:", e);
+  }
+}
+
+function attachAllListeners(){
+  document.getElementById("ap-category").addEventListener("change", onCategoryChange);
+
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>requestTab(btn.dataset.tab));
+  });
+
+  document.getElementById("rules-toggle").addEventListener("click", toggleRulesPanel);
+  document.getElementById("rules-add-btn").addEventListener("click", addDraftRuleRow);
+  document.getElementById("rules-save-btn").addEventListener("click", saveRulesAndSettings);
+  document.getElementById("stats-toggle").addEventListener("click", toggleStatsPanel);
+  document.querySelectorAll(".stat-section-toggle").forEach(t=>{
+    t.addEventListener("click", ()=> toggleStatSection(t.dataset.target));
+  });
+  document.getElementById("budget-add-btn").addEventListener("click", addBudgetRow);
+  document.getElementById("budget-save-btn").addEventListener("click", saveBudgetEntries);
+
+  document.getElementById("drop-zone").addEventListener("click", ()=>{
+    document.getElementById("ap-files").click();
+  });
+  document.getElementById("ap-files").addEventListener("change", onFilesSelected);
+  document.getElementById("submit-btn").addEventListener("click", onSubmit);
+  document.getElementById("mine-search-btn").addEventListener("click", searchMine);
+  document.getElementById("result-close-btn").addEventListener("click", ()=>{
+    document.getElementById("submit-result").style.display = "none";
+  });
+
+  document.getElementById("select-all-check").addEventListener("change", onSelectAllToggle);
+  document.getElementById("bulk-apply-btn").addEventListener("click", applyBulkStatus);
+  document.getElementById("export-csv-btn").addEventListener("click", exportCsv);
+  populateBulkStatusSelect();
+
+  document.getElementById("stats-period").addEventListener("change", ()=>{
+    document.getElementById("stats-date-from").value = "";
+    document.getElementById("stats-date-to").value = "";
+    renderStatsTab();
+  });
+  document.getElementById("stats-date-from").addEventListener("change", renderStatsTab);
+  document.getElementById("stats-date-to").addEventListener("change", renderStatsTab);
+  document.getElementById("stats-date-reset-btn").addEventListener("click", ()=>{
+    document.getElementById("stats-date-from").value = "";
+    document.getElementById("stats-date-to").value = "";
+    renderStatsTab();
+  });
+  document.getElementById("stats-year-select").addEventListener("change", renderStatsTab);
+
+  document.getElementById("filter-date-from").addEventListener("change", ()=>{ selectedIds.clear(); renderAdminList(); });
+  document.getElementById("filter-date-to").addEventListener("change", ()=>{ selectedIds.clear(); renderAdminList(); });
+  document.getElementById("filter-date-reset-btn").addEventListener("click", ()=>{
+    document.getElementById("filter-date-from").value = "";
+    document.getElementById("filter-date-to").value = "";
+    selectedIds.clear();
+    renderAdminList();
+  });
+
+  document.getElementById("passcode-confirm-btn").addEventListener("click", confirmPasscode);
+  document.getElementById("passcode-cancel-btn").addEventListener("click", closePasscodeModal);
+  document.getElementById("passcode-input").addEventListener("keydown", (e)=>{
+    if(e.key==="Enter") confirmPasscode();
+  });
+
+  // 임시저장: 신청 폼 입력 필드 변경 시 자동 저장
+  DRAFT_FIELD_IDS.forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener("input", scheduleDraftAutosave);
+    el.addEventListener("change", scheduleDraftAutosave);
+  });
+  document.getElementById("draft-restore-btn").addEventListener("click", restoreDraft);
+  document.getElementById("draft-discard-btn").addEventListener("click", ()=>discardDraft(true));
+
+  document.getElementById("stats-export-btn").addEventListener("click", exportStatsCsv);
+
+  document.getElementById("dup-confirm-btn").addEventListener("click", confirmDuplicateSubmit);
+  document.getElementById("dup-cancel-btn").addEventListener("click", closeDupModal);
+}
+
+const GATED_TABS = ["admin"];
+let isAdminUnlocked = false;
+let pendingTab = null;
+
+async function requestTab(tab){
+  if(GATED_TABS.includes(tab) && !isAdminUnlocked){
+    // 잠긴 화면에 접속 전, 최신 비밀번호를 저장소에서 한 번 더 확인
+    try{ currentSettings = await fetchSettings(); }catch(e){ /* 기존 값 유지 */ }
+    pendingTab = tab;
+    openPasscodeModal();
+    return;
+  }
+  switchTab(tab);
+}
+
+function openPasscodeModal(){
+  document.getElementById("passcode-input").value = "";
+  document.getElementById("passcode-modal").classList.add("show");
+  document.getElementById("passcode-input").focus();
+}
+function closePasscodeModal(){
+  document.getElementById("passcode-modal").classList.remove("show");
+  pendingTab = null;
+}
+function confirmPasscode(){
+  const input = document.getElementById("passcode-input").value;
+  const correct = (currentSettings.adminPasscode || "").trim() || DEFAULT_ADMIN_PASSCODE;
+  if(input === correct){
+    isAdminUnlocked = true;
+    closePasscodeModal();
+    if(pendingTab) switchTab(pendingTab);
+    pendingTab = null;
+  }else{
+    showToast("비밀번호가 올바르지 않습니다.");
+    document.getElementById("passcode-input").value = "";
+    document.getElementById("passcode-input").focus();
+  }
+}
+
+
+async function switchTab(tab){
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");
+  if(tab==="admin"){
+    currentSettings = await fetchSettings();
+    budgetEntries = await fetchBudgetEntries();
+    openBudgetEditor();
+    await loadSubmissions(true);
+    renderStatsTab();
+  }
+  if(tab==="apply"){
+    currentRules = await fetchRules();
+    currentSettings = await fetchSettings();
+    renderCategoryOptions();
+    updateEmailNotice();
+    updatePrivacyNotice();
+  }
+}
+
+function renderCategoryOptions(){
+  const sel = document.getElementById("ap-category");
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">경조사항을 선택하세요</option>';
+  currentRules.forEach((r,i)=>{
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = r.cat;
+    sel.appendChild(opt);
+  });
+  if(prev !== "" && currentRules[prev]) sel.value = prev;
+}
+
+function onCategoryChange(e){
+  const box = document.getElementById("ap-info");
+  const idx = e.target.value;
+  if(idx===""){ box.classList.remove("show"); return; }
+  const r = currentRules[idx];
+  document.getElementById("info-amount").textContent = r.amount;
+  document.getElementById("info-leave").textContent = r.leave;
+  document.getElementById("info-docs").textContent = r.docs;
+  box.classList.add("show");
+}
+
+/* ---------- 안내 이메일 ---------- */
+function updateEmailNotice(){
+  const box = document.getElementById("email-notice");
+  const email = (currentSettings.contactEmail || "").trim();
+  if(email){
+    box.innerHTML = `📧 증빙서류가 커서 첨부가 어려운 경우, <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a> 로 성명·경조내용을 제목에 적어 별도 제출해 주세요. 접수번호가 있다면 함께 적어주시면 확인이 빠릅니다.`;
+  }else{
+    box.textContent = "📧 증빙서류가 커서 첨부가 어려운 경우, 인사총무팀에 이메일로 별도 제출해 주세요. (담당 이메일 주소는 관리자 화면에서 등록하면 이곳에 자동 안내됩니다.)";
+  }
+}
+
+function updatePrivacyNotice(){
+  const box = document.getElementById("consent-notice");
+  box.textContent = currentSettings.privacyNotice || DEFAULT_PRIVACY_NOTICE;
+}
+
+/* ---------- 파일 첨부 ---------- */
+function onFilesSelected(e){
+  const files = Array.from(e.target.files);
+  files.forEach(f=>{
+    if(f.size > MAX_FILE_BYTES){
+      skippedFiles.push({name:f.name});
+      renderSkippedList();
+      showToast(`"${f.name}"은(는) 1.5MB를 초과하여 첨부할 수 없습니다. 이메일로 별도 제출해 주세요.`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      attachedFiles.push({name:f.name, size:f.size, type:f.type, dataUrl:reader.result});
+      renderFileList();
+    };
+    reader.readAsDataURL(f);
+  });
+  e.target.value = "";
+}
+function renderFileList(){
+  const wrap = document.getElementById("file-list");
+  wrap.innerHTML = "";
+  attachedFiles.forEach((f,i)=>{
+    const chip = document.createElement("div");
+    chip.className = "file-chip";
+    chip.innerHTML = `<span>📄 ${f.name} <span style="color:var(--muted)">(${Math.round(f.size/1024)}KB)</span></span>`;
+    const btn = document.createElement("button");
+    btn.textContent = "삭제";
+    btn.onclick = ()=>{ attachedFiles.splice(i,1); renderFileList(); };
+    chip.appendChild(btn);
+    wrap.appendChild(chip);
+  });
+}
+function renderSkippedList(){
+  const wrap = document.getElementById("skipped-list");
+  wrap.innerHTML = "";
+  skippedFiles.forEach((f,i)=>{
+    const chip = document.createElement("div");
+    chip.className = "skipped-chip";
+    chip.innerHTML = `<span>⚠ ${escapeHtml(f.name)} — 용량 초과로 미첨부 (이메일 별도 제출 필요)</span>`;
+    const btn = document.createElement("button");
+    btn.textContent = "확인";
+    btn.onclick = ()=>{ skippedFiles.splice(i,1); renderSkippedList(); };
+    chip.appendChild(btn);
+    wrap.appendChild(chip);
+  });
+}
+
+/* ---------- 제출 ---------- */
+async function onSubmit(){
+  const dept = document.getElementById("ap-dept").value.trim();
+  const name = document.getElementById("ap-name").value.trim();
+  const empId = document.getElementById("ap-empid").value.trim();
+  const applicantEmail = document.getElementById("ap-email").value.trim();
+  const catIdx = document.getElementById("ap-category").value;
+  const target = document.getElementById("ap-target").value.trim();
+  const relation = document.getElementById("ap-relation").value.trim();
+  const eventDate = document.getElementById("ap-date").value;
+  const note = document.getElementById("ap-note").value.trim();
+
+  if(!dept||!name||!empId){ showToast("소속·성명·사번을 입력해 주세요."); return; }
+  if(catIdx===""){ showToast("경조사항을 선택해 주세요."); return; }
+  if(!target||!relation){ showToast("대상자 성명과 관계를 입력해 주세요."); return; }
+  if(!eventDate){ showToast("사유 발생일자를 입력해 주세요."); return; }
+  if(!document.getElementById("ap-consent").checked){
+    showToast("개인정보 수집·이용에 동의해야 신청서를 제출할 수 있습니다.");
+    return;
+  }
+
+  const r = currentRules[catIdx];
+  const id = "HS-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+  const now = new Date().toISOString();
+
+  let fullNote = note;
+  if(skippedFiles.length){
+    const names = skippedFiles.map(f=>f.name).join(", ");
+    fullNote = (fullNote ? fullNote + "\n" : "") + `※ 용량 초과로 미첨부 → 이메일 별도 제출 예정: ${names}`;
+  }
+
+  const submission = {
+    id, createdAt: now,
+    dept, name, empId, applicantEmail,
+    category: r.cat, amount: r.amount, leave: r.leave, requiredDocs: r.docs,
+    target, relation, eventDate, note: fullNote,
+    attachments: attachedFiles,
+    status: "접수",
+    statusHistory: [{status:"접수", at: now, memo:""}],
+    consentGiven: true, consentAt: now,
+  };
+
+  const list = await fetchAllSubmissions();
+  const dupMatches = list.filter(s =>
+    s.empId === empId &&
+    s.category === r.cat &&
+    s.target.trim().toLowerCase() === target.trim().toLowerCase() &&
+    s.status !== "반려"
+  );
+  if(dupMatches.length > 0){
+    pendingDuplicateSubmission = {submission, list};
+    openDupModal(dupMatches);
+    return;
+  }
+
+  await finalizeSubmit(submission, list);
+}
+
+async function finalizeSubmit(submission, list){
+  document.getElementById("submit-btn").disabled = true;
+  document.getElementById("submit-btn").textContent = "제출 중...";
+  try{
+    list.push(submission);
+    await saveAllSubmissions(list);
+    showSubmitResult(submission);
+    showToast(`제출이 완료되었습니다. 접수번호: ${submission.id}`);
+    resetForm();
+    await discardDraft(false);
+  }catch(err){
+    showToast("제출 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    console.error(err);
+  }finally{
+    document.getElementById("submit-btn").disabled = false;
+    document.getElementById("submit-btn").textContent = "신청서 제출";
+  }
+}
+
+/* ---------- 중복 신청 확인 모달 ---------- */
+function openDupModal(matches){
+  const listWrap = document.getElementById("dup-list");
+  listWrap.innerHTML = matches.map(s=>
+    `<div>${escapeHtml(s.id)} · ${fmtDate(s.createdAt)} 접수 · 상태: ${escapeHtml(s.status)}</div>`
+  ).join("");
+  document.getElementById("dup-modal").classList.add("show");
+}
+function closeDupModal(){
+  document.getElementById("dup-modal").classList.remove("show");
+  pendingDuplicateSubmission = null;
+}
+async function confirmDuplicateSubmit(){
+  if(!pendingDuplicateSubmission) return;
+  const {submission, list} = pendingDuplicateSubmission;
+  document.getElementById("dup-modal").classList.remove("show");
+  pendingDuplicateSubmission = null;
+  await finalizeSubmit(submission, list);
+}
+
+function resetForm(){
+  ["ap-dept","ap-name","ap-empid","ap-email","ap-target","ap-relation","ap-date","ap-note"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("ap-category").value = "";
+  document.getElementById("ap-info").classList.remove("show");
+  document.getElementById("ap-consent").checked = false;
+  attachedFiles = [];
+  skippedFiles = [];
+  renderFileList();
+  renderSkippedList();
+}
+
+/* ---------- 임시저장 (신청 폼) ---------- */
+function scheduleDraftAutosave(){
+  if(suppressDraftAutosave) return;
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(autosaveDraftNow, 700);
+}
+function gatherDraftFromForm(){
+  const draft = {savedAt: new Date().toISOString()};
+  DRAFT_FIELD_IDS.forEach(id=>{ draft[id] = document.getElementById(id).value; });
+  return draft;
+}
+function isDraftMeaningful(draft){
+  // 사람이 알아볼 수 있는 내용이 하나라도 있어야 "이어서 작성" 배너를 띄울 가치가 있음
+  return DRAFT_FIELD_IDS.some(id => (draft[id]||"").trim() !== "");
+}
+async function autosaveDraftNow(){
+  const draft = gatherDraftFromForm();
+  if(!isDraftMeaningful(draft)) return;
+  try{
+    await storageSet(DRAFT_KEY, JSON.stringify(draft), false);
+  }catch(e){ /* 임시저장 실패는 조용히 무시 (핵심 기능이 아님) */ }
+}
+async function checkForDraft(){
+  let draft = null;
+  try{
+    const res = await storageGet(DRAFT_KEY, false);
+    if(res) draft = JSON.parse(res.value);
+  }catch(e){ return; }
+  if(!draft || !isDraftMeaningful(draft)) return;
+  const banner = document.getElementById("draft-banner");
+  const sub = document.getElementById("draft-banner-sub");
+  const savedAt = draft.savedAt ? new Date(draft.savedAt) : null;
+  sub.textContent = savedAt
+    ? `${fmtDate(draft.savedAt)} ${String(savedAt.getHours()).padStart(2,'0')}:${String(savedAt.getMinutes()).padStart(2,'0')} 저장됨 · ${draft["ap-name"]||"이름 미입력"} / ${draft["ap-target"]||"대상자 미입력"}`
+    : "이전에 작성 중이던 내용";
+  banner.style.display = "flex";
+  banner.dataset.pending = "1";
+}
+async function restoreDraft(){
+  try{
+    const res = await storageGet(DRAFT_KEY, false);
+    if(!res) return;
+    const draft = JSON.parse(res.value);
+    suppressDraftAutosave = true;
+    DRAFT_FIELD_IDS.forEach(id=>{
+      if(draft[id] !== undefined) document.getElementById(id).value = draft[id];
+    });
+    // 경조내용 안내 박스 갱신
+    document.getElementById("ap-category").dispatchEvent(new Event("change"));
+    suppressDraftAutosave = false;
+  }catch(e){
+    showToast("임시저장 내용을 불러오지 못했습니다.");
+  }
+  document.getElementById("draft-banner").style.display = "none";
+}
+async function discardDraft(fromUserClick){
+  try{ await storageSet(DRAFT_KEY, JSON.stringify(null), false); }catch(e){ /* 무시 */ }
+  document.getElementById("draft-banner").style.display = "none";
+  if(fromUserClick) showToast("새 신청서로 시작합니다.");
+}
+
+/* ---------- 제출 완료 후 다음 행동 안내 ---------- */
+function showSubmitResult(submission){
+  document.getElementById("result-id").textContent = submission.id;
+  const actions = [];
+  actions.push({ico:"📋", text:"인사총무팀이 순차적으로 검토합니다. 처리 상태는 '내 신청 현황' 탭에서 확인할 수 있습니다."});
+  if(submission.leave && submission.leave !== "해당없음" && submission.leave !== "-"){
+    actions.push({ico:"🗓", text:`이 경조사항은 경조휴가 <b>${escapeHtml(submission.leave)}</b>가 발생합니다. <b>휴가 신청은 인사팀 근태 시스템(그룹웨어)에도 별도로 등록</b>해 주세요. 이 화면의 제출만으로는 근태에 반영되지 않습니다.`});
+  }
+  if(skippedFiles.length){
+    const names = skippedFiles.map(f=>escapeHtml(f.name)).join(", ");
+    const emailPart = currentSettings.contactEmail
+      ? `<a href="mailto:${escapeHtml(currentSettings.contactEmail)}">${escapeHtml(currentSettings.contactEmail)}</a>로`
+      : "인사총무팀에 이메일로";
+    actions.push({ico:"📧", text:`용량 초과로 미첨부된 서류(${names})는 ${emailPart} 접수번호(${submission.id})와 함께 별도 제출해 주세요.`});
+  }
+  document.getElementById("result-actions").innerHTML = actions.map(a=>`<li><span class="ico">${a.ico}</span><span>${a.text}</span></li>`).join("");
+  document.getElementById("submit-result").style.display = "block";
+  document.getElementById("submit-result").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* ---------- 규정(rules) & 설정(settings) storage ---------- */
+async function fetchRules(){
+  const res = await storageGet(RULES_KEY, true);
+  if(res) return JSON.parse(res.value);
+  await storageSet(RULES_KEY, JSON.stringify(DEFAULT_RULES), true);
+  return DEFAULT_RULES;
+}
+async function fetchSettings(){
+  const res = await storageGet(SETTINGS_KEY, true);
+  if(res){
+    const saved = JSON.parse(res.value);
+    // 기존에 저장된 설정에 새 필드(개인정보 안내문 등)가 없을 경우 기본값으로 보완
+    return {...DEFAULT_SETTINGS, ...saved, privacyNotice: (saved.privacyNotice && saved.privacyNotice.trim()) || DEFAULT_PRIVACY_NOTICE};
+  }
+  return {...DEFAULT_SETTINGS};
+}
+
+/* ---------- 연도별 예산 배정/조정 내역 ---------- */
+async function fetchBudgetEntries(){
+  const res = await storageGet(BUDGET_KEY, true);
+  if(res){
+    try{ return JSON.parse(res.value); }catch(e){ /* 손상된 값이면 아래에서 마이그레이션/빈 배열로 대체 */ }
+  }
+  // 이전 버전의 단일 "연간 예산" 값이 있었다면 최초 배정 항목으로 1회 이전
+  const legacy = amountToNumber(currentSettings.annualBudget);
+  const migrated = legacy > 0
+    ? [{id:"legacy-"+Date.now().toString(36), year:new Date().getFullYear(), amount:legacy, memo:"기존 설정값에서 이전"}]
+    : [];
+  await storageSet(BUDGET_KEY, JSON.stringify(migrated), true);
+  return migrated;
+}
+function budgetTotalForYear(year){
+  return budgetEntries.filter(e=>Number(e.year)===Number(year)).reduce((sum,e)=>sum+Number(e.amount||0),0);
+}
+
+function toggleRulesPanel(){
+  document.getElementById("rules-toggle").classList.toggle("open");
+  const body = document.getElementById("rules-body");
+  body.classList.toggle("open");
+  if(body.classList.contains("open")) openRulesEditor();
+}
+function toggleStatsPanel(){
+  document.getElementById("stats-toggle").classList.toggle("open");
+  const body = document.getElementById("stats-body");
+  body.classList.toggle("open");
+  if(body.classList.contains("open")) renderStatsTab();
+}
+function toggleStatSection(targetId){
+  const toggle = document.querySelector(`.stat-section-toggle[data-target="${targetId}"]`);
+  const body = document.getElementById(targetId);
+  toggle.classList.toggle("open");
+  body.classList.toggle("open");
+}
+function openBudgetEditor(){
+  draftBudgetEntries = budgetEntries.map(e=>({...e}));
+  renderBudgetTable();
+}
+function renderBudgetTable(){
+  const tbody = document.getElementById("budget-tbody");
+  if(draftBudgetEntries.length===0){
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);font-size:12.5px;padding:10px 6px;">등록된 예산 배정 내역이 없습니다. "배정 내역 추가"로 시작하세요.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = draftBudgetEntries.map((e,i)=>`
+    <tr>
+      <td><input type="number" value="${escapeAttr(e.year)}" data-f="year" data-i="${i}" style="width:90px;"></td>
+      <td><input type="number" value="${escapeAttr(e.amount)}" data-f="amount" data-i="${i}" placeholder="예: 10000000 또는 -2000000"></td>
+      <td><input type="text" value="${escapeAttr(e.memo||'')}" data-f="memo" data-i="${i}" placeholder="예: 최초 배정, 3월 추가배정 등"></td>
+      <td class="col-del"><button data-del="${i}" title="삭제">✕</button></td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      const val = inp.dataset.f === "memo" ? inp.value : Number(inp.value);
+      draftBudgetEntries[inp.dataset.i][inp.dataset.f] = val;
+    });
+  });
+  tbody.querySelectorAll("[data-del]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      draftBudgetEntries.splice(Number(btn.dataset.del), 1);
+      renderBudgetTable();
+    });
+  });
+}
+function addBudgetRow(){
+  draftBudgetEntries.push({id:"b"+Date.now().toString(36), year:new Date().getFullYear(), amount:0, memo:""});
+  renderBudgetTable();
+}
+async function saveBudgetEntries(){
+  const cleaned = draftBudgetEntries.filter(e=> e.year && !isNaN(e.amount) && Number(e.amount)!==0).map(e=>({
+    id:e.id, year:Number(e.year), amount:Number(e.amount), memo:(e.memo||"").trim()
+  }));
+  const btn = document.getElementById("budget-save-btn");
+  btn.disabled = true;
+  btn.textContent = "저장 중...";
+  try{
+    await storageSet(BUDGET_KEY, JSON.stringify(cleaned), true);
+    budgetEntries = cleaned;
+    draftBudgetEntries = cleaned.map(e=>({...e}));
+    renderBudgetTable();
+    renderStatsTab();
+    const note = document.getElementById("budget-saved-note");
+    note.style.display = "block";
+    setTimeout(()=>{ note.style.display = "none"; }, 4000);
+    showToast("예산 배정 내역이 저장되었습니다.");
+  }catch(err){
+    showToast("저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    console.error(err);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "예산 내역 저장";
+  }
+}
+function openRulesEditor(){
+  draftRules = currentRules.map(r=>({...r}));
+  document.getElementById("settings-email").value = currentSettings.contactEmail || "";
+  document.getElementById("settings-passcode").value = currentSettings.adminPasscode || "";
+  document.getElementById("settings-privacy-notice").value = currentSettings.privacyNotice || DEFAULT_PRIVACY_NOTICE;
+  renderRulesTable();
+}
+function renderRulesTable(){
+  const tbody = document.getElementById("rules-tbody");
+  tbody.innerHTML = draftRules.map((r,i)=>`
+    <tr>
+      <td class="col-cat"><input type="text" value="${escapeAttr(r.cat)}" data-f="cat" data-i="${i}"></td>
+      <td><input type="text" value="${escapeAttr(r.amount)}" data-f="amount" data-i="${i}"></td>
+      <td><input type="text" value="${escapeAttr(r.leave)}" data-f="leave" data-i="${i}"></td>
+      <td><input type="text" value="${escapeAttr(r.docs)}" data-f="docs" data-i="${i}"></td>
+      <td class="col-del"><button data-del="${i}" title="삭제">✕</button></td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      draftRules[inp.dataset.i][inp.dataset.f] = inp.value;
+    });
+  });
+  tbody.querySelectorAll("[data-del]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      draftRules.splice(Number(btn.dataset.del), 1);
+      renderRulesTable();
+    });
+  });
+}
+function addDraftRuleRow(){
+  draftRules.push({id:"r"+Date.now().toString(36), cat:"", amount:"", leave:"", docs:""});
+  renderRulesTable();
+}
+async function saveRulesAndSettings(){
+  const cleaned = draftRules.filter(r=>r.cat.trim()!=="").map(r=>({
+    id:r.id, cat:r.cat.trim(), amount:r.amount.trim()||"해당없음", leave:r.leave.trim()||"해당없음", docs:r.docs.trim()||"해당없음"
+  }));
+  const email = document.getElementById("settings-email").value.trim();
+  const passcode = document.getElementById("settings-passcode").value.trim();
+  const privacyNotice = document.getElementById("settings-privacy-notice").value.trim() || DEFAULT_PRIVACY_NOTICE;
+
+  const saveBtn = document.getElementById("rules-save-btn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "저장 중...";
+  try{
+    await storageSet(RULES_KEY, JSON.stringify(cleaned), true);
+    const newSettings = {contactEmail: email, adminPasscode: passcode, privacyNotice};
+    await storageSet(SETTINGS_KEY, JSON.stringify(newSettings), true);
+    currentRules = cleaned;
+    currentSettings = newSettings;
+    draftRules = cleaned.map(r=>({...r}));
+    renderRulesTable();
+    renderCategoryOptions();
+    updateEmailNotice();
+    updatePrivacyNotice();
+    const note = document.getElementById("rules-saved-note");
+    note.style.display = "block";
+    setTimeout(()=>{ note.style.display = "none"; }, 4000);
+    showToast("경조내용 및 지급기준이 저장되었습니다.");
+  }catch(err){
+    showToast("저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
+    console.error(err);
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = "변경사항 저장";
+  }
+}
+
+/* ---------- storage helpers (신청 내역) ---------- */
+async function fetchAllSubmissions(){
+  const res = await storageGet(STORAGE_KEY, true);
+  return res ? JSON.parse(res.value) : [];
+}
+async function saveAllSubmissions(list){
+  const res = await storageSet(STORAGE_KEY, JSON.stringify(list), true);
+  if(!res) throw new Error("storage set failed");
+  allSubmissions = list;
+}
+async function loadSubmissions(forAdmin){
+  allSubmissions = await fetchAllSubmissions();
+  if(forAdmin) renderAdminList();
+}
+
+/* ---------- 내 신청 현황 ---------- */
+async function searchMine(){
+  const empId = document.getElementById("mine-empid").value.trim();
+  const name = document.getElementById("mine-name").value.trim();
+  const wrap = document.getElementById("mine-results");
+  if(!empId && !name){
+    wrap.innerHTML = `<div class="empty"><div class="big">🔍</div>사번 또는 성명을 입력해 조회해 주세요.</div>`;
+    return;
+  }
+  allSubmissions = await fetchAllSubmissions();
+  const mine = allSubmissions.filter(s=>
+    (empId && s.empId === empId) || (name && !empId && s.name === name)
+  ).sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+
+  if(mine.length===0){
+    wrap.innerHTML = `<div class="empty"><div class="big">📭</div>조회된 신청 내역이 없습니다.</div>`;
+    return;
+  }
+  wrap.innerHTML = mine.map(renderMineCard).join("");
+}
+
+function renderMineCard(s){
+  const stepIdx = STATUS_ORDER.indexOf(s.status);
+  const isRejected = s.status === "반려";
+  const stepsHtml = STATUS_ORDER.map((st,i)=>{
+    const done = !isRejected && i<=stepIdx;
+    return `<div class="step ${done?'done':''}"><div class="dot">${i+1}</div><div class="lb">${st}</div></div>`;
+  }).join("");
+  const rejectMemo = isRejected ? (s.statusHistory[s.statusHistory.length-1]?.memo || "") : "";
+
+  return `
+  <div class="sub-card">
+    <div class="sub-top">
+      <div>
+        <div class="who">${escapeHtml(s.target)} · ${escapeHtml(s.relation)}</div>
+        <div class="cat">${escapeHtml(s.category)}</div>
+      </div>
+      <span class="badge b-${s.status}">${s.status}</span>
+    </div>
+    <div class="sub-meta">
+      <span>접수번호 <b>${s.id}</b></span>
+      <span>신청일 <b>${fmtDate(s.createdAt)}</b></span>
+      <span>지급액 <b>${s.amount}</b></span>
+      <span>휴가 <b>${s.leave}</b></span>
+    </div>
+    ${isRejected ? `<div class="rejected-note">반려 사유: ${escapeHtml(rejectMemo || "사유 미기재")}</div>` :
+      `<div class="steps">${stepsHtml}</div>`}
+  </div>`;
+}
+
+/* ---------- 관리자 ---------- */
+let currentFilter = "전체";
+let selectedIds = new Set();
+let lastRenderedIds = []; // 현재 필터로 화면에 보이는 id 목록 (전체선택 기준)
+
+function renderAdminFilters(){
+  const filters = ["전체", ...STATUS_ORDER, "반려"];
+  const wrap = document.getElementById("admin-filters");
+  wrap.innerHTML = filters.map(f=>`<button class="chip-filter ${f===currentFilter?'active':''}" data-f="${f}">${f}</button>`).join("");
+  wrap.querySelectorAll(".chip-filter").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      currentFilter = btn.dataset.f;
+      selectedIds.clear();
+      renderAdminFilters();
+      renderAdminList();
+    });
+  });
+}
+
+function populateBulkStatusSelect(){
+  const sel = document.getElementById("bulk-status-sel");
+  sel.innerHTML = [...STATUS_ORDER,"반려"].map(st=>`<option value="${st}">${st}</option>`).join("");
+}
+
+function getFilteredSubmissions(){
+  let list = [...allSubmissions].sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  if(currentFilter !== "전체") list = list.filter(s=>s.status===currentFilter);
+
+  const fromVal = document.getElementById("filter-date-from").value;
+  const toVal = document.getElementById("filter-date-to").value;
+  if(fromVal){
+    const from = new Date(fromVal+"T00:00:00");
+    list = list.filter(s=> new Date(s.createdAt) >= from);
+  }
+  if(toVal){
+    const to = new Date(toVal+"T23:59:59");
+    list = list.filter(s=> new Date(s.createdAt) <= to);
+  }
+  return list;
+}
+
+function renderAdminList(){
+  const wrap = document.getElementById("admin-list");
+  const list = getFilteredSubmissions();
+  lastRenderedIds = list.map(s=>s.id);
+
+  if(list.length===0){
+    wrap.innerHTML = `<div class="empty"><div class="big">📭</div>해당 조건의 신청 내역이 없습니다.</div>`;
+    updateBulkBar();
+    return;
+  }
+
+  wrap.innerHTML = list.map(s=>`
+    <div class="admin-item" id="item-${s.id}">
+      <div class="admin-head" data-id="${s.id}">
+        <input type="checkbox" class="row-check" data-check="${s.id}" ${selectedIds.has(s.id)?'checked':''}>
+        <div class="left">
+          <div class="nm">${escapeHtml(s.name)} (${escapeHtml(s.dept)}) — ${escapeHtml(s.category)}</div>
+          <div class="id">${s.id} · ${fmtDate(s.createdAt)}</div>
+        </div>
+        <span class="badge b-${s.status}">${s.status}</span>
+      </div>
+      <div class="admin-body" id="body-${s.id}">
+        <div class="detail-grid">
+          <div class="dk">신청인 사번</div><div class="dv">${escapeHtml(s.empId)}</div>
+          <div class="dk">신청인 이메일</div><div class="dv">${escapeHtml(s.applicantEmail || "미입력")}</div>
+          <div class="dk">대상자</div><div class="dv">${escapeHtml(s.target)} (${escapeHtml(s.relation)})</div>
+          <div class="dk">사유 발생일자</div><div class="dv">${escapeHtml(s.eventDate)}</div>
+          <div class="dk">지급액 / 휴가</div><div class="dv">${s.amount} / ${s.leave}</div>
+          <div class="dk">필요 증빙서류</div><div class="dv">${escapeHtml(s.requiredDocs)}</div>
+          <div class="dk">비고</div><div class="dv">${escapeHtml(s.note || "-")}</div>
+          <div class="dk">개인정보 동의</div><div class="dv">${s.consentGiven ? `동의함 (${fmtDateTime(s.consentAt)})` : "기록 없음"}</div>
+        </div>
+        <div>
+          ${(s.attachments&&s.attachments.length) ? s.attachments.map(f=>`<a class="attach-link" href="${f.dataUrl}" download="${escapeHtml(f.name)}">📎 ${escapeHtml(f.name)}</a>`).join("") : '<span style="font-size:12.5px;color:var(--muted);">첨부된 증빙서류 없음</span>'}
+        </div>
+        ${s.applicantEmail ? `<a class="notify-link" href="${buildNotifyMailto(s)}">📧 신청자에게 상태 안내 메일 보내기</a>` : ''}
+        <div class="history-timeline">
+          ${(s.statusHistory||[]).map(h=>`
+            <div class="history-item">
+              <div class="dot2"></div>
+              <div>
+                <span class="h-status">${escapeHtml(h.status)}</span><span class="h-at">${fmtDateTime(h.at)}</span>
+                ${h.memo ? `<div class="h-memo">${escapeHtml(h.memo)}</div>` : ''}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="status-actions">
+          <select id="status-sel-${s.id}">
+            ${[...STATUS_ORDER,"반려"].map(st=>`<option value="${st}" ${st===s.status?'selected':''}>${st}</option>`).join("")}
+          </select>
+          <input type="text" id="memo-${s.id}" placeholder="처리 메모 (반려 시 사유 입력)" style="flex:2;">
+          <button class="btn btn-ghost btn-sm" data-save="${s.id}">저장</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll(".admin-head").forEach(h=>{
+    h.addEventListener("click", (e)=>{
+      if(e.target.classList.contains("row-check")) return;
+      document.getElementById("body-"+h.dataset.id).classList.toggle("open");
+    });
+  });
+  wrap.querySelectorAll("[data-check]").forEach(chk=>{
+    chk.addEventListener("click", (e)=>e.stopPropagation());
+    chk.addEventListener("change", ()=>{
+      if(chk.checked) selectedIds.add(chk.dataset.check);
+      else selectedIds.delete(chk.dataset.check);
+      updateBulkBar();
+    });
+  });
+  wrap.querySelectorAll("[data-save]").forEach(btn=>{
+    btn.addEventListener("click", ()=>saveStatus(btn.dataset.save));
+  });
+  updateBulkBar();
+}
+
+function onSelectAllToggle(e){
+  if(e.target.checked) lastRenderedIds.forEach(id=>selectedIds.add(id));
+  else lastRenderedIds.forEach(id=>selectedIds.delete(id));
+  renderAdminList();
+}
+
+function updateBulkBar(){
+  const bar = document.getElementById("bulk-bar");
+  const n = selectedIds.size;
+  document.getElementById("bulk-count").textContent = `${n}건 선택됨`;
+  bar.style.display = n>0 ? "flex" : "none";
+  const allChecked = lastRenderedIds.length>0 && lastRenderedIds.every(id=>selectedIds.has(id));
+  document.getElementById("select-all-check").checked = allChecked;
+}
+
+async function applyBulkStatus(){
+  if(selectedIds.size===0) return;
+  const newStatus = document.getElementById("bulk-status-sel").value;
+  const btn = document.getElementById("bulk-apply-btn");
+  btn.disabled = true;
+  btn.textContent = "처리 중...";
+  try{
+    const list = await fetchAllSubmissions();
+    const now = new Date().toISOString();
+    let count = 0;
+    list.forEach(s=>{
+      if(selectedIds.has(s.id)){
+        s.status = newStatus;
+        s.statusHistory.push({status:newStatus, at:now, memo:"(일괄 변경)"});
+        count++;
+      }
+    });
+    await saveAllSubmissions(list);
+    showToast(`${count}건의 상태를 "${newStatus}"(으)로 일괄 변경했습니다.`);
+    selectedIds.clear();
+    renderAdminList();
+  }catch(err){
+    showToast("일괄 변경 중 오류가 발생했습니다.");
+    console.error(err);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "일괄 변경";
+  }
+}
+
+function exportCsv(){
+  const source = selectedIds.size>0
+    ? allSubmissions.filter(s=>selectedIds.has(s.id))
+    : getFilteredSubmissions();
+
+  if(source.length===0){ showToast("내보낼 신청 내역이 없습니다."); return; }
+
+  const headers = ["접수번호","신청일","소속","성명","사번","경조내용","대상자","관계","사유발생일자","지급액","휴가일수","상태","비고"];
+  const rows = source
+    .sort((a,b)=> new Date(a.createdAt) - new Date(b.createdAt))
+    .map(s=>[s.id, fmtDate(s.createdAt), s.dept, s.name, s.empId, s.category, s.target, s.relation, s.eventDate, s.amount, s.leave, s.status, (s.note||"").replace(/\n/g," / ")]);
+
+  const csvLines = [headers, ...rows].map(row =>
+    row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")
+  );
+  const csvContent = "\uFEFF" + csvLines.join("\r\n"); // BOM 포함 (엑셀 한글 깨짐 방지)
+
+  const blob = new Blob([csvContent], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  a.href = url;
+  a.download = `경조금_신청내역_${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`${source.length}건을 CSV로 내보냈습니다.`);
+}
+
+async function saveStatus(id){
+  const newStatus = document.getElementById("status-sel-"+id).value;
+  const memo = document.getElementById("memo-"+id).value.trim();
+  const list = await fetchAllSubmissions();
+  const s = list.find(x=>x.id===id);
+  if(!s) return;
+  s.status = newStatus;
+  s.statusHistory.push({status:newStatus, at:new Date().toISOString(), memo});
+  await saveAllSubmissions(list);
+  showToast("처리 상태가 저장되었습니다.");
+  renderAdminList();
+}
+
+/* ---------- 통계 ---------- */
+function amountToNumber(str){
+  if(!str) return 0;
+  const n = String(str).replace(/[^0-9]/g,"");
+  return n ? parseInt(n,10) : 0;
+}
+function categoryTopLevel(cat){
+  const m = String(cat||"").match(/^\[(.+?)\]/);
+  return m ? m[1] : "기타";
+}
+function buildTrendChartSvg(entries){
+  const w = 640, h = 210, padL = 34, padR = 16, padT = 26, padB = 30;
+  const innerW = w - padL - padR;
+  const innerH = h - padT - padB;
+  const maxVal = Math.max(1, ...entries.map(e=>e[1]));
+  const n = entries.length;
+  const stepX = n>1 ? innerW/(n-1) : 0;
+  const pts = entries.map(([month,count],i)=>{
+    const x = padL + (n>1 ? i*stepX : innerW/2);
+    const y = padT + innerH - (count/maxVal)*innerH;
+    return {x, y, month, count};
+  });
+  const fmt = v => v.toFixed(1);
+  const linePath = pts.map((p,i)=> (i===0?"M":"L")+fmt(p.x)+","+fmt(p.y)).join(" ");
+  const baseY = padT + innerH;
+  const areaPath = `${linePath} L${fmt(pts[n-1].x)},${fmt(baseY)} L${fmt(pts[0].x)},${fmt(baseY)} Z`;
+
+  const gridSteps = [0, 0.5, 1];
+  const gridSvg = gridSteps.map(f=>{
+    const y = padT + innerH - f*innerH;
+    const val = Math.round(maxVal*f);
+    return `<line x1="${padL}" y1="${fmt(y)}" x2="${w-padR}" y2="${fmt(y)}" stroke="var(--border)" stroke-width="1"/>`+
+           `<text x="${padL-8}" y="${fmt(y+3.5)}" font-size="10" fill="var(--muted)" text-anchor="end">${val}</text>`;
+  }).join("");
+
+  const dotsSvg = pts.map(p=>
+    `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="3.5" fill="var(--navy)"/>`+
+    `<text x="${fmt(p.x)}" y="${fmt(p.y-9)}" font-size="10" fill="var(--navy)" text-anchor="middle" font-weight="700">${p.count}</text>`
+  ).join("");
+
+  const labelEvery = n>12 ? Math.ceil(n/12) : 1;
+  const xLabelsSvg = pts.map((p,i)=>
+    i % labelEvery === 0 ? `<text x="${fmt(p.x)}" y="${h-8}" font-size="10" fill="var(--muted)" text-anchor="middle">${escapeHtml(p.month.slice(2))}</text>` : ""
+  ).join("");
+
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block;">
+    ${gridSvg}
+    <path d="${areaPath}" fill="var(--blue-bg)" stroke="none"/>
+    <path d="${linePath}" fill="none" stroke="var(--navy)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dotsSvg}
+    ${xLabelsSvg}
+  </svg>`;
+}
+function populateStatsYearSelect(){
+  const sel = document.getElementById("stats-year-select");
+  const prev = sel.value;
+  const years = new Set([new Date().getFullYear()]);
+  allSubmissions.forEach(s=> years.add(new Date(s.createdAt).getFullYear()));
+  const sorted = [...years].sort((a,b)=>b-a);
+  sel.innerHTML = sorted.map(y=>`<option value="${y}">${y}년</option>`).join("");
+  if(prev && sorted.includes(Number(prev))) sel.value = prev;
+}
+
+function renderStatsTab(){
+  if(!allSubmissions) return;
+  populateStatsYearSelect();
+  const year = Number(document.getElementById("stats-year-select").value || new Date().getFullYear());
+
+  // 1) 예산 대비 집행률 (선택한 연도의 지급완료 건 기준)
+  const yearAll = allSubmissions.filter(s=> new Date(s.createdAt).getFullYear() === year);
+  const paidTotal = yearAll.filter(s=>s.status==="지급완료").reduce((sum,s)=>sum+amountToNumber(s.amount),0);
+  const pendingTotal = yearAll.filter(s=>["접수","검토중","승인"].includes(s.status)).reduce((sum,s)=>sum+amountToNumber(s.amount),0);
+  const budget = budgetTotalForYear(year);
+
+  document.getElementById("stat-paid").textContent = paidTotal.toLocaleString("ko-KR")+"원";
+  document.getElementById("stat-pending").textContent = pendingTotal.toLocaleString("ko-KR")+"원";
+
+  const fill = document.getElementById("stat-progress");
+  const budgetSub = document.getElementById("stat-budget-sub");
+  if(budget>0){
+    const pct = Math.round((paidTotal/budget)*1000)/10;
+    fill.style.width = Math.min(pct,100)+"%";
+    fill.classList.toggle("over", pct>100);
+    budgetSub.textContent = `${year}년 예산 ${budget.toLocaleString("ko-KR")}원 대비 ${pct}% 집행`;
+  }else{
+    fill.style.width = "0%";
+    fill.classList.remove("over");
+    budgetSub.textContent = `${year}년 예산이 등록되지 않았습니다 (아래 "예산 배정 내역"에서 등록)`;
+  }
+
+  // 기간 필터 (유형별 빈도 / 처리 소요일 평균에 공통 적용): 직접 지정 기간이 있으면 우선 적용
+  const fromVal = document.getElementById("stats-date-from").value;
+  const toVal = document.getElementById("stats-date-to").value;
+  let filtered = allSubmissions;
+  if(fromVal || toVal){
+    if(fromVal){
+      const from = new Date(fromVal+"T00:00:00");
+      filtered = filtered.filter(s=> new Date(s.createdAt) >= from);
+    }
+    if(toVal){
+      const to = new Date(toVal+"T23:59:59");
+      filtered = filtered.filter(s=> new Date(s.createdAt) <= to);
+    }
+  }else{
+    const months = Number(document.getElementById("stats-period").value || 0);
+    if(months>0){
+      const cutoff = new Date();
+      cutoff.setMonth(cutoff.getMonth()-months);
+      filtered = allSubmissions.filter(s=> new Date(s.createdAt) >= cutoff);
+    }
+  }
+
+  // 2) 유형별 발생 빈도
+  const freqMap = {};
+  filtered.forEach(s=>{
+    const key = categoryTopLevel(s.category);
+    freqMap[key] = (freqMap[key]||0)+1;
+  });
+  const freqEntries = Object.entries(freqMap).sort((a,b)=>b[1]-a[1]);
+  lastFreqEntries = freqEntries;
+  const freqWrap = document.getElementById("stat-freq-list");
+  if(freqEntries.length===0){
+    freqWrap.innerHTML = `<div class="stats-empty">해당 기간에 접수된 신청이 없습니다.</div>`;
+  }else{
+    const max = freqEntries[0][1];
+    freqWrap.innerHTML = freqEntries.map(([name,count])=>`
+      <div class="bar-row">
+        <div class="bar-label">${escapeHtml(name)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(6,(count/max)*100)}%;"></div></div>
+        <div class="bar-count">${count}건</div>
+      </div>
+    `).join("");
+  }
+
+  // 3) 월별 접수 건수 추이
+  const trendMap = {};
+  filtered.forEach(s=>{
+    const d = new Date(s.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    trendMap[key] = (trendMap[key]||0)+1;
+  });
+  const trendEntries = Object.entries(trendMap).sort((a,b)=> a[0]<b[0] ? -1 : 1);
+  lastTrendEntries = trendEntries;
+  const trendWrap = document.getElementById("stat-trend-list");
+  if(trendEntries.length===0){
+    trendWrap.innerHTML = `<div class="stats-empty">해당 기간에 접수된 신청이 없습니다.</div>`;
+  }else{
+    trendWrap.innerHTML = buildTrendChartSvg(trendEntries);
+  }
+
+  // 4) 단계별 처리 소요일 평균 (병목 구간)
+  const stageDurations = {}; // "접수→검토중" -> [days,...]
+  filtered.forEach(s=>{
+    const hist = s.statusHistory || [];
+    for(let i=1;i<hist.length;i++){
+      const from = hist[i-1].status, to = hist[i].status;
+      const key = `${from} → ${to}`;
+      const days = (new Date(hist[i].at) - new Date(hist[i-1].at)) / (1000*60*60*24);
+      if(!stageDurations[key]) stageDurations[key] = [];
+      stageDurations[key].push(days);
+    }
+  });
+  const stageEntries = Object.entries(stageDurations).map(([key,arr])=>[key, arr.reduce((a,b)=>a+b,0)/arr.length]);
+  lastStageEntries = stageEntries;
+  const stageWrap = document.getElementById("stat-stage-list");
+  if(stageEntries.length===0){
+    stageWrap.innerHTML = `<div class="stats-empty">해당 기간에 상태가 변경된 신청 건이 없습니다. 검토·승인 처리가 진행되면 단계별 소요일이 표시됩니다.</div>`;
+  }else{
+    const maxDays = Math.max(...stageEntries.map(e=>e[1]));
+    stageWrap.innerHTML = stageEntries.map(([key,avg])=>`
+      <div class="stage-row ${avg===maxDays?'bottleneck':''}">
+        <span class="stage-name">${escapeHtml(key)}</span>
+        <span class="stage-days">평균 ${avg.toFixed(1)}일</span>
+      </div>
+    `).join("");
+  }
+}
+
+function exportStatsCsv(){
+  const year = Number(document.getElementById("stats-year-select").value || new Date().getFullYear());
+  if(lastFreqEntries.length===0 && lastStageEntries.length===0 && lastTrendEntries.length===0 && budgetEntries.length===0){
+    showToast("내보낼 통계 데이터가 없습니다.");
+    return;
+  }
+  const lines = [];
+  lines.push([`${year}년 예산 배정 내역`]);
+  lines.push(["연도","금액","메모"]);
+  budgetEntries.filter(e=>Number(e.year)===year).forEach(e=> lines.push([e.year, e.amount, e.memo||""]));
+  lines.push(["합계", budgetTotalForYear(year), ""]);
+  lines.push([]);
+  lines.push(["경조사 유형별 발생 빈도"]);
+  lines.push(["유형","건수"]);
+  lastFreqEntries.forEach(([name,count])=> lines.push([name, count]));
+  lines.push([]);
+  lines.push(["월별 접수 건수 추이"]);
+  lines.push(["월","건수"]);
+  lastTrendEntries.forEach(([month,count])=> lines.push([month, count]));
+  lines.push([]);
+  lines.push(["처리 소요일 평균"]);
+  lines.push(["구간","평균 소요일"]);
+  lastStageEntries.forEach(([key,avg])=> lines.push([key, avg.toFixed(1)]));
+
+  const csvLines = lines.map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(","));
+  const csvContent = "\uFEFF" + csvLines.join("\r\n");
+  const blob = new Blob([csvContent], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  a.href = url;
+  a.download = `경조금_통계_${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("통계를 CSV로 내보냈습니다.");
+}
+
+
+/* ---------- utils ---------- */
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove("show"), 3200);
+}
+function fmtDate(iso){
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDateTime(iso){
+  const d = new Date(iso);
+  return `${fmtDate(iso)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function buildNotifyMailto(s){
+  const subject = `[경조금 신청] ${s.id} 처리 상태 안내 (${s.status})`;
+  const lines = [
+    `${s.name}님, 안녕하세요.`,
+    ``,
+    `신청하신 경조금 건의 처리 상태를 안내드립니다.`,
+    ``,
+    `- 접수번호: ${s.id}`,
+    `- 경조내용: ${s.category}`,
+    `- 현재 상태: ${s.status}`,
+  ];
+  const lastMemo = (s.statusHistory && s.statusHistory.length) ? s.statusHistory[s.statusHistory.length-1].memo : "";
+  if(lastMemo) lines.push(`- 처리 메모: ${lastMemo}`);
+  lines.push(``, `문의사항은 인사총무팀으로 연락해 주세요.`);
+  const body = lines.join("\n");
+  return `mailto:${encodeURIComponent(s.applicantEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+function escapeHtml(str){
+  if(str===undefined||str===null) return "";
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+function escapeAttr(str){
+  return escapeHtml(str);
+}
+
+init();
+</script>
+</body>
+</html>
