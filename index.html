@@ -625,6 +625,10 @@
     <div class="card">
       <h2>전체 신청 내역</h2>
       <div class="date-filter-row">
+        <div class="field" style="flex:1;min-width:200px;"><label>신청자 이름·사번 검색</label><input type="text" id="filter-search" placeholder="예: 홍길동 또는 2018001"></div>
+        <button class="btn btn-ghost btn-sm" id="filter-search-reset-btn">검색 초기화</button>
+      </div>
+      <div class="date-filter-row">
         <div class="field"><label>신청일(시작)</label><input type="date" id="filter-date-from"></div>
         <div class="field"><label>신청일(종료)</label><input type="date" id="filter-date-to"></div>
         <button class="btn btn-ghost btn-sm" id="filter-date-reset-btn">기간 초기화</button>
@@ -638,6 +642,7 @@
         <span class="count" id="bulk-count">0건 선택됨</span>
         <select id="bulk-status-sel"></select>
         <button class="btn btn-ghost btn-sm" id="bulk-apply-btn">일괄 변경</button>
+        <button class="btn btn-ghost btn-sm" id="bulk-delete-btn" style="color:var(--red);border-color:#F3B4B4;">🗑 선택 삭제</button>
         <div class="spacer"></div>
         <button class="btn btn-ghost btn-sm" id="export-csv-btn">⬇ 엑셀로 내보내기 (CSV)</button>
       </div>
@@ -716,8 +721,8 @@ const MAX_FILE_BYTES = 1.5 * 1024 * 1024;
              3) 개인 데이터(shared=false)는 브라우저 localStorage, 공유 데이터는 메모리(새로고침 시 사라짐)
    =================================================================================
    ▼▼▼ Supabase 연동: 아래 두 줄에 발급받은 값을 붙여넣으세요 (가이드 문서 참고) ▼▼▼ */
-const SUPABASE_URL = "https://uzimbitmimyxzfcqxnnf.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_LXSR-rT2H-Wfn2M05rYcrA_1C4cNAoe";
+const SUPABASE_URL = "여기에_Supabase_Project_URL_붙여넣기";
+const SUPABASE_ANON_KEY = "여기에_Supabase_anon_public_키_붙여넣기";
 /* ▲▲▲ 여기까지만 수정하면 됩니다. 아래 코드는 건드리지 않아도 됩니다. ▲▲▲ */
 
 let supabaseClient = null;
@@ -889,6 +894,7 @@ function attachAllListeners(){
 
   document.getElementById("select-all-check").addEventListener("change", onSelectAllToggle);
   document.getElementById("bulk-apply-btn").addEventListener("click", applyBulkStatus);
+  document.getElementById("bulk-delete-btn").addEventListener("click", deleteSelectedSubmissions);
   document.getElementById("export-csv-btn").addEventListener("click", exportCsv);
   populateBulkStatusSelect();
 
@@ -905,6 +911,17 @@ function attachAllListeners(){
     renderStatsTab();
   });
   document.getElementById("stats-year-select").addEventListener("change", renderStatsTab);
+
+  let searchDebounceTimer = null;
+  document.getElementById("filter-search").addEventListener("input", ()=>{
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(()=>{ selectedIds.clear(); renderAdminList(); }, 250);
+  });
+  document.getElementById("filter-search-reset-btn").addEventListener("click", ()=>{
+    document.getElementById("filter-search").value = "";
+    selectedIds.clear();
+    renderAdminList();
+  });
 
   document.getElementById("filter-date-from").addEventListener("change", ()=>{ selectedIds.clear(); renderAdminList(); });
   document.getElementById("filter-date-to").addEventListener("change", ()=>{ selectedIds.clear(); renderAdminList(); });
@@ -1548,6 +1565,15 @@ function getFilteredSubmissions(){
   let list = [...allSubmissions].sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
   if(currentFilter !== "전체") list = list.filter(s=>s.status===currentFilter);
 
+  const searchVal = (document.getElementById("filter-search").value || "").trim().toLowerCase();
+  if(searchVal){
+    list = list.filter(s =>
+      (s.name||"").toLowerCase().includes(searchVal) ||
+      (s.empId||"").toLowerCase().includes(searchVal) ||
+      (s.target||"").toLowerCase().includes(searchVal)
+    );
+  }
+
   const fromVal = document.getElementById("filter-date-from").value;
   const toVal = document.getElementById("filter-date-to").value;
   if(fromVal){
@@ -1614,6 +1640,7 @@ function renderAdminList(){
           </select>
           <input type="text" id="memo-${s.id}" placeholder="처리 메모 (반려 시 사유 입력)" style="flex:2;">
           <button class="btn btn-ghost btn-sm" data-save="${s.id}">저장</button>
+          <button class="btn btn-ghost btn-sm" data-delete-one="${s.id}" style="color:var(--red);border-color:#F3B4B4;">🗑 삭제</button>
         </div>
       </div>
     </div>
@@ -1635,6 +1662,9 @@ function renderAdminList(){
   });
   wrap.querySelectorAll("[data-save]").forEach(btn=>{
     btn.addEventListener("click", ()=>saveStatus(btn.dataset.save));
+  });
+  wrap.querySelectorAll("[data-delete-one]").forEach(btn=>{
+    btn.addEventListener("click", ()=>deleteOneSubmission(btn.dataset.deleteOne));
   });
   updateBulkBar();
 }
@@ -1681,6 +1711,48 @@ async function applyBulkStatus(){
   }finally{
     btn.disabled = false;
     btn.textContent = "일괄 변경";
+  }
+}
+
+async function deleteOneSubmission(id){
+  const target = allSubmissions.find(s=>s.id===id);
+  const label = target ? `${target.name} (${target.category})` : id;
+  const ok = window.confirm(`"${label}" 신청 건을 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.`);
+  if(!ok) return;
+  try{
+    const list = await fetchAllSubmissions();
+    const filtered = list.filter(s=>s.id!==id);
+    await saveAllSubmissions(filtered);
+    selectedIds.delete(id);
+    showToast("삭제되었습니다.");
+    renderAdminList();
+  }catch(err){
+    showToast("삭제 중 오류가 발생했습니다.");
+    console.error(err);
+  }
+}
+
+async function deleteSelectedSubmissions(){
+  if(selectedIds.size===0) return;
+  const n = selectedIds.size;
+  const ok = window.confirm(`선택한 ${n}건을 삭제하시겠습니까?\n삭제하면 되돌릴 수 없습니다.`);
+  if(!ok) return;
+  const btn = document.getElementById("bulk-delete-btn");
+  btn.disabled = true;
+  btn.textContent = "삭제 중...";
+  try{
+    const list = await fetchAllSubmissions();
+    const filtered = list.filter(s=>!selectedIds.has(s.id));
+    await saveAllSubmissions(filtered);
+    showToast(`${n}건을 삭제했습니다.`);
+    selectedIds.clear();
+    renderAdminList();
+  }catch(err){
+    showToast("삭제 중 오류가 발생했습니다.");
+    console.error(err);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "🗑 선택 삭제";
   }
 }
 
